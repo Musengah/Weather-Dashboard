@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <style>
+        .weather-card {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+        }
+        .icon-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feather {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+    <div class="max-w-4xl mx-auto space-y-6">
+        <!-- Search Bar -->
+        <div class="flex gap-2">
+            <input 
+                type="text" 
+                id="citySearch"
+                placeholder="Search for a city..." 
+                class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+            <button 
+                id="searchButton"
+                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
+            >
+                <i data-feather="search"></i>
+                Search
+            </button>
+        </div>
+
+        <!-- Current Weather -->
+        <div class="weather-card rounded-lg shadow-lg">
+            <div class="p-6 text-white">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-3xl font-bold" id="location"><%= weather ? weather.city : 'New York' %></h2>
+                        <p class="text-6xl font-bold mt-4" id="currentTemp"><%= weather ? `${weather.temperature}°C` : '72°F' %></p>
+                        <p class="text-xl mt-2" id="condition"><%= weather ? weather.description : 'Partly Cloudy' %></p>
+                    </div>
+                    <div class="icon-container">
+                        <i data-feather="cloud" class="w-8 h-8"></i>
+                    </div>
+                </div>
+                <div class="flex gap-6 mt-6">
+                    <div class="flex items-center gap-2">
+                        <i data-feather="thermometer"></i>
+                        <span>Humidity: <span id="humidity"><%= weather ? weather.humidity : '65' %></span>%</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-feather="wind"></i>
+                        <span>Wind: <span id="windSpeed"><%= weather ? weather.windSpeed : '8' %></span> mph</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="forecast">
+            <% if (forecast) { %>
+                <% forecast.forEach(day => { %>
+                    <div class="bg-white rounded-lg shadow-md">
+                        <div class="p-4">
+                            <div class="text-center">
+                                <h3 class="font-bold text-lg"><%= new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' }) %></h3>
+                                <div class="my-3 icon-container">
+                                    <i data-feather="cloud"></i>
+                                </div>
+                                <p class="text-sm text-gray-600"><%= day.condition %></p>
+                                <div class="mt-2 flex justify-center gap-2">
+                                    <span class="font-bold"><%= day.maxTemp %>°</span>
+                                    <span class="text-gray-500"><%= day.minTemp %>°</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+
+        // Handle search
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const city = document.getElementById('citySearch').value;
+            if (city) {
+                fetchWeatherByCity(city);
+            }
+        });
+
+        // Handle enter key in search input
+        document.getElementById('citySearch').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('searchButton').click();
+            }
+        });
+
+        function fetchWeatherByCity(city) {
+            fetch(`/weather?city=${city}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.body.innerHTML = data;
+                    feather.replace();
+                })
+                .catch(error => {
+                    console.error('Error fetching weather data:', error);
+                    alert('An error occurred. Please try again later.');
+                });
+        }
+    </script>
+</body>
+</html>
